@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>PPP Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: 40px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 14px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #0088cc;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Добро пожаловать 👋</h1>
+    <p>
+      Ты попал в мой Telegram-мини-апп.<br>
+      Здесь будет эксклюзивный контент.
+    </p>
+
+    <button onclick="subscribe()">
+      Подписаться на канал
+    </button>
+  </div>
+
+  <script>
+    function subscribe() {
+      window.open("https://t.me/USERNAME_КАНАЛА", "_blank");
+    }
+  </script>
+
+</body>
+</html>
