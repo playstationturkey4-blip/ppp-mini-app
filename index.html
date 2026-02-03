@@ -15,10 +15,13 @@ body {
 
 .screen {
   min-height: 100vh;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+.screen.active {
+  display: flex;
 }
 
 .card {
@@ -30,19 +33,43 @@ body {
   box-shadow: 0 30px 60px rgba(0,0,0,0.45);
 }
 
+/* меню */
+.menu-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 20px;
+}
+.menu-btn {
+  width: 100%;
+  padding: 16px;
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+}
+.menu-btn.play {
+  background: linear-gradient(135deg, #00c6ff, #0088cc);
+}
+.menu-btn.career {
+  background: linear-gradient(135deg, #1ed760, #1db954);
+}
+
+/* игра */
 .title {
   text-align: center;
   font-weight: 800;
   font-size: 22px;
 }
-
 .stats {
   text-align: center;
   font-size: 14px;
   margin: 6px 0 10px;
 }
 
-/* Стадион */
 .stadium {
   position: relative;
   width: 100%;
@@ -111,7 +138,6 @@ body {
   display: none;
 }
 
-/* Шкала силы */
 .power-bar {
   height: 12px;
   background: #333;
@@ -119,7 +145,6 @@ body {
   overflow: hidden;
   margin-top: 10px;
 }
-
 .power-fill {
   height: 100%;
   width: 0%;
@@ -133,21 +158,13 @@ body {
   );
 }
 
-.hint {
-  text-align: center;
-  font-size: 13px;
-  margin-top: 6px;
-}
-
 .result {
   text-align: center;
-  font-size: 15px;
   font-weight: 700;
   min-height: 22px;
   margin-top: 6px;
 }
 
-/* Кнопки */
 .btn {
   width: 100%;
   margin-top: 8px;
@@ -157,11 +174,12 @@ body {
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  background: linear-gradient(135deg, #0088cc, #00c6ff);
-  color: #fff;
   display: none;
+  color: #fff;
 }
-
+.btn.next {
+  background: linear-gradient(135deg, #00c6ff, #0088cc);
+}
 .btn.restart {
   background: linear-gradient(135deg, #1db954, #1ed760);
 }
@@ -169,13 +187,22 @@ body {
 </head>
 
 <body>
-<div class="screen">
+
+<!-- МЕНЮ -->
+<div class="screen active" id="menu">
+  <div class="card">
+    <div class="menu-title">PENALTY GAME</div>
+    <button class="menu-btn play" onclick="startGame(false)">🎮 Новая игра</button>
+    <button class="menu-btn career" onclick="startGame(true)">⭐ Карьера</button>
+  </div>
+</div>
+
+<!-- ИГРА -->
+<div class="screen" id="game">
   <div class="card">
 
-    <div class="title">Карьера · Пенальти</div>
-    <div class="stats" id="stats">
-      Удары: 0 / 5 · Голы: 0 · Рейтинг: 60
-    </div>
+    <div class="title" id="modeTitle"></div>
+    <div class="stats" id="stats"></div>
 
     <div class="stadium" id="stadium">
       <div class="goal"></div>
@@ -184,39 +211,53 @@ body {
       <div class="aim" id="aim"></div>
     </div>
 
-    <div class="power-bar">
-      <div class="power-fill" id="powerFill"></div>
-    </div>
-    <div class="hint">Удерживай → отпусти в зелёной зоне</div>
+    <div class="power-bar"><div class="power-fill" id="powerFill"></div></div>
 
-    <div class="result" id="result">Наведи курсор, зажми и бей</div>
+    <div class="result" id="result"></div>
 
-    <button class="btn" id="nextBtn">➡️ Следующий удар</button>
-    <button class="btn restart" id="restartBtn">🔁 Играть ещё</button>
+    <button class="btn next" id="nextBtn">➡️ Следующий удар</button>
+    <button class="btn restart" id="restartBtn">🔁 Новая серия</button>
 
   </div>
 </div>
 
 <script>
-let shots = 0;
-let goals = 0;
-let rating = 60;
+let shots, goals, rating, career;
 const maxShots = 5;
 
-let power = 0;
-let powerInterval = null;
-let charging = false;
-let canShoot = true;
-
+const menu = document.getElementById('menu');
+const game = document.getElementById('game');
+const stats = document.getElementById('stats');
+const modeTitle = document.getElementById('modeTitle');
 const stadium = document.getElementById('stadium');
 const ball = document.getElementById('ball');
 const keeper = document.getElementById('keeper');
 const aim = document.getElementById('aim');
 const powerFill = document.getElementById('powerFill');
 const result = document.getElementById('result');
-const stats = document.getElementById('stats');
 const nextBtn = document.getElementById('nextBtn');
 const restartBtn = document.getElementById('restartBtn');
+
+let power = 0, charging = false, interval, canShoot = true;
+
+/* старт игры */
+function startGame(isCareer) {
+  career = isCareer;
+  shots = 0;
+  goals = 0;
+
+  if (career) {
+    rating = Number(localStorage.getItem('rating')) || 60;
+    modeTitle.innerText = 'Карьера';
+  } else {
+    rating = 60;
+    modeTitle.innerText = 'Новая игра';
+  }
+
+  updateStats();
+  menu.classList.remove('active');
+  game.classList.add('active');
+}
 
 /* прицел */
 stadium.addEventListener('mousemove', e => {
@@ -234,9 +275,8 @@ stadium.addEventListener('mousedown', () => {
   power = 0;
   powerFill.style.width = '0%';
 
-  powerInterval = setInterval(() => {
-    power += 2;
-    if (power > 100) power = 100;
+  interval = setInterval(() => {
+    power = Math.min(power + 2, 100);
     powerFill.style.width = power + '%';
   }, 30);
 });
@@ -244,26 +284,25 @@ stadium.addEventListener('mousedown', () => {
 /* удар */
 stadium.addEventListener('mouseup', e => {
   if (!charging || !canShoot) return;
-
-  clearInterval(powerInterval);
+  clearInterval(interval);
   charging = false;
   canShoot = false;
   shots++;
 
   const perfect = power >= 55 && power <= 65;
-  const saveChance = perfect ? 0.25 : power < 40 ? 0.6 : 0.4;
+  const saveChance = perfect ? 0.25 : 0.45;
 
   const r = stadium.getBoundingClientRect();
   const x = e.clientX - r.left;
   const y = e.clientY - r.top;
 
   ball.style.transform =
-    `translateX(calc(-50% + ${x - r.width / 2}px))
+    `translateX(calc(-50% + ${x - r.width/2}px))
      translateY(${y - (r.height - 20)}px)`;
 
   if (Math.random() < saveChance) {
     keeper.style.transform =
-      `translateX(calc(-50% + ${x - r.width / 2}px))`;
+      `translateX(calc(-50% + ${x - r.width/2}px))`;
   }
 
   setTimeout(() => {
@@ -271,50 +310,51 @@ stadium.addEventListener('mouseup', e => {
       result.innerText = '❌ СЕЙВ';
     } else {
       goals++;
-      rating += perfect ? 2 : 1;
-      result.innerText = perfect ? '🔥 ИДЕАЛЬНЫЙ ГОЛ!' : '⚽ ГОЛ';
+      if (career && rating < 99) rating += perfect ? 2 : 1;
+      result.innerText = perfect ? '🔥 ИДЕАЛЬНЫЙ ГОЛ' : '⚽ ГОЛ';
     }
     updateStats();
-    showNext();
+    showControls();
   }, 600);
 });
 
 function updateStats() {
   stats.innerText =
-    `Удары: ${shots} / ${maxShots} · Голы: ${goals} · Рейтинг: ${rating}`;
+    `Удары: ${shots}/5 · Голы: ${goals} · Рейтинг: ${rating}`;
 }
 
-function showNext() {
+function showControls() {
   aim.style.display = 'none';
   powerFill.style.width = '0%';
 
   if (shots < maxShots) {
     nextBtn.style.display = 'block';
   } else {
+    if (career) localStorage.setItem('rating', rating);
+    result.innerText = `🏁 Серия окончена: ${goals} из 5`;
     restartBtn.style.display = 'block';
-    result.innerText = `🏁 Серия окончена: ${goals} из ${maxShots}`;
   }
 }
 
 nextBtn.onclick = () => {
-  ball.style.transform = 'translateX(-50%)';
-  keeper.style.transform = 'translateX(-50%)';
-  result.innerText = 'Наведи курсор, зажми и бей';
+  resetShot();
   nextBtn.style.display = 'none';
-  canShoot = true;
 };
 
 restartBtn.onclick = () => {
   shots = 0;
   goals = 0;
-  rating = 60;
   updateStats();
+  resetShot();
+  restartBtn.style.display = 'none';
+};
+
+function resetShot() {
   ball.style.transform = 'translateX(-50%)';
   keeper.style.transform = 'translateX(-50%)';
-  result.innerText = 'Наведи курсор, зажми и бей';
-  restartBtn.style.display = 'none';
+  result.innerText = 'Наведи и бей';
   canShoot = true;
-};
+}
 </script>
 </body>
 </html>
