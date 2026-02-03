@@ -42,6 +42,7 @@ body {
   margin: 6px 0 10px;
 }
 
+/* Стадион */
 .stadium {
   position: relative;
   width: 100%;
@@ -110,7 +111,7 @@ body {
   display: none;
 }
 
-/* ШКАЛА СИЛЫ */
+/* Шкала силы */
 .power-bar {
   height: 12px;
   background: #333;
@@ -143,6 +144,26 @@ body {
   font-size: 15px;
   font-weight: 700;
   min-height: 22px;
+  margin-top: 6px;
+}
+
+/* Кнопки */
+.btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0088cc, #00c6ff);
+  color: #fff;
+  display: none;
+}
+
+.btn.restart {
+  background: linear-gradient(135deg, #1db954, #1ed760);
 }
 </style>
 </head>
@@ -152,10 +173,12 @@ body {
   <div class="card">
 
     <div class="title">Карьера · Пенальти</div>
-    <div class="stats" id="stats">Удары: 0 / 5 · Голы: 0 · Рейтинг: 60</div>
+    <div class="stats" id="stats">
+      Удары: 0 / 5 · Голы: 0 · Рейтинг: 60
+    </div>
 
     <div class="stadium" id="stadium">
-      <div class="goal" id="goal"></div>
+      <div class="goal"></div>
       <div class="keeper" id="keeper"></div>
       <div class="ball" id="ball"></div>
       <div class="aim" id="aim"></div>
@@ -166,7 +189,10 @@ body {
     </div>
     <div class="hint">Удерживай → отпусти в зелёной зоне</div>
 
-    <div class="result" id="result"></div>
+    <div class="result" id="result">Наведи курсор, зажми и бей</div>
+
+    <button class="btn" id="nextBtn">➡️ Следующий удар</button>
+    <button class="btn restart" id="restartBtn">🔁 Играть ещё</button>
 
   </div>
 </div>
@@ -189,6 +215,8 @@ const aim = document.getElementById('aim');
 const powerFill = document.getElementById('powerFill');
 const result = document.getElementById('result');
 const stats = document.getElementById('stats');
+const nextBtn = document.getElementById('nextBtn');
+const restartBtn = document.getElementById('restartBtn');
 
 /* прицел */
 stadium.addEventListener('mousemove', e => {
@@ -199,7 +227,7 @@ stadium.addEventListener('mousemove', e => {
   aim.style.display = 'block';
 });
 
-/* начало зарядки */
+/* зарядка */
 stadium.addEventListener('mousedown', () => {
   if (!canShoot) return;
   charging = true;
@@ -216,6 +244,7 @@ stadium.addEventListener('mousedown', () => {
 /* удар */
 stadium.addEventListener('mouseup', e => {
   if (!charging || !canShoot) return;
+
   clearInterval(powerInterval);
   charging = false;
   canShoot = false;
@@ -246,7 +275,7 @@ stadium.addEventListener('mouseup', e => {
       result.innerText = perfect ? '🔥 ИДЕАЛЬНЫЙ ГОЛ!' : '⚽ ГОЛ';
     }
     updateStats();
-    resetShot();
+    showNext();
   }, 600);
 });
 
@@ -255,15 +284,37 @@ function updateStats() {
     `Удары: ${shots} / ${maxShots} · Голы: ${goals} · Рейтинг: ${rating}`;
 }
 
-function resetShot() {
-  setTimeout(() => {
-    ball.style.transform = 'translateX(-50%)';
-    keeper.style.transform = 'translateX(-50%)';
-    powerFill.style.width = '0%';
-    canShoot = true;
-    aim.style.display = 'none';
-  }, 700);
+function showNext() {
+  aim.style.display = 'none';
+  powerFill.style.width = '0%';
+
+  if (shots < maxShots) {
+    nextBtn.style.display = 'block';
+  } else {
+    restartBtn.style.display = 'block';
+    result.innerText = `🏁 Серия окончена: ${goals} из ${maxShots}`;
+  }
 }
+
+nextBtn.onclick = () => {
+  ball.style.transform = 'translateX(-50%)';
+  keeper.style.transform = 'translateX(-50%)';
+  result.innerText = 'Наведи курсор, зажми и бей';
+  nextBtn.style.display = 'none';
+  canShoot = true;
+};
+
+restartBtn.onclick = () => {
+  shots = 0;
+  goals = 0;
+  rating = 60;
+  updateStats();
+  ball.style.transform = 'translateX(-50%)';
+  keeper.style.transform = 'translateX(-50%)';
+  result.innerText = 'Наведи курсор, зажми и бей';
+  restartBtn.style.display = 'none';
+  canShoot = true;
+};
 </script>
 </body>
 </html>
