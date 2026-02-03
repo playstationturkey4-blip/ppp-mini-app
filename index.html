@@ -229,7 +229,7 @@ body {
 
     <button class="btn next" id="nextBtn">➡️ Следующий удар</button>
     <button class="btn restart" id="restartBtn">🔁 Новая серия</button>
-    <button class="btn back" onclick="backToMenu()">⬅️ В меню</button>
+    <button class="btn back" id="menuBtn" onclick="backToMenu()">⬅️ В меню</button>
   </div>
 </div>
 
@@ -288,6 +288,7 @@ const powerFill=document.getElementById('powerFill');
 const result=document.getElementById('result');
 const nextBtn=document.getElementById('nextBtn');
 const restartBtn=document.getElementById('restartBtn');
+const menuBtn=document.getElementById('menuBtn');
 
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -300,7 +301,10 @@ function startGame(isCareer){
   const p=getProgress();
   rating=isCareer?p.rating:60;
   modeTitle.innerText=isCareer?'Карьера':'Новая игра';
+  menuBtn.style.display='none';
+  restartBtn.style.display='none';
   updateStats();
+  resetShot();
   showScreen('game');
 }
 
@@ -379,11 +383,13 @@ function finishSeries(){
   }
   result.innerText=`🏁 Серия окончена: ${goals} из 5`;
   restartBtn.style.display='block';
+  menuBtn.style.display='block';
 }
 
 restartBtn.onclick=()=>{
   shots=0; goals=0; currentStreak=0;
   restartBtn.style.display='none';
+  menuBtn.style.display='none';
   updateStats();
   resetShot();
 };
