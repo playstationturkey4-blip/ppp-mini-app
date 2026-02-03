@@ -2,60 +2,91 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Penalty Game</title>
+<title>Penalty Stadium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
   margin: 0;
-  background: #0b6623;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(#87ceeb 0%, #cfefff 45%, #7ec850 45%);
   color: #fff;
 }
 
+/* Общий экран */
 .screen {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   padding: 20px;
 }
 
+/* Карточка игры */
 .card {
   width: 100%;
   max-width: 420px;
-  background: #0f7a2e;
+  background: rgba(15, 122, 46, 0.95);
   border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  padding: 18px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.45);
 }
 
+/* Заголовок */
 .title {
   text-align: center;
   font-weight: 800;
-  font-size: 24px;
+  font-size: 22px;
 }
 
+/* Счёт */
 .score {
   text-align: center;
   font-size: 14px;
-  margin: 6px 0 12px;
+  margin: 6px 0 10px;
+  opacity: 0.95;
 }
 
-.field {
+/* СТАДИОН */
+.stadium {
   position: relative;
   width: 100%;
   height: 260px;
-  background: linear-gradient(#1e8f3a 50%, #178033 50%);
-  background-size: 100% 40px;
+  background: linear-gradient(#c0c0c0 0%, #d9d9d9 35%, #1e8f3a 35%);
   border-radius: 14px;
   overflow: hidden;
+  margin-bottom: 12px;
+}
+
+/* Трибуны */
+.stands {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 90px;
+  background: repeating-linear-gradient(
+    45deg,
+    #b0b0b0,
+    #b0b0b0 6px,
+    #c8c8c8 6px,
+    #c8c8c8 12px
+  );
+}
+
+/* Поле */
+.field {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 170px;
+  background: linear-gradient(#1e8f3a 50%, #178033 50%);
+  background-size: 100% 40px;
 }
 
 /* Ворота */
 .goal {
   position: absolute;
-  top: 15px;
+  top: 40px;
   left: 50%;
   transform: translateX(-50%);
   width: 200px;
@@ -67,7 +98,7 @@ body {
 /* Вратарь */
 .keeper {
   position: absolute;
-  top: 48px;
+  top: 70px;
   left: 50%;
   width: 24px;
   height: 36px;
@@ -91,17 +122,18 @@ body {
 /* Мяч */
 .ball {
   position: absolute;
-  bottom: 18px;
+  bottom: 25px;
   left: 50%;
   width: 22px;
   height: 22px;
   background: #fff;
   border: 3px solid #000;
   border-radius: 50%;
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(-50%);
   transition: transform 0.45s ease;
 }
 
+/* Кнопки */
 .btn {
   width: 100%;
   margin-top: 6px;
@@ -133,10 +165,12 @@ body {
 <div class="screen">
   <div class="card">
 
-    <div class="title">Пенальти</div>
+    <div class="title">Серия пенальти</div>
     <div class="score" id="scoreText">Удар: 1 / 5 · Голы: 0</div>
 
-    <div class="field">
+    <div class="stadium">
+      <div class="stands"></div>
+      <div class="field"></div>
       <div class="goal"></div>
       <div class="keeper" id="keeper"></div>
       <div class="ball" id="ball"></div>
@@ -157,37 +191,28 @@ let shots = 0;
 let goals = 0;
 const maxShots = 5;
 
-// координаты ударов относительно центра ворот
-const SHOT_X = {
-  left: -80,
-  center: 0,
-  right: 80
-};
+const SHOT_X = { left: -80, center: 0, right: 80 };
 
 function shoot(dir) {
   if (shots >= maxShots) return;
-
   shots++;
 
   const keeperChoice = ['left','center','right'][Math.floor(Math.random()*3)];
   const ball = document.getElementById('ball');
   const keeper = document.getElementById('keeper');
 
-  // сброс
   ball.style.transition = 'none';
   keeper.style.transition = 'none';
-  ball.style.transform = 'translateX(-50%) translateY(0)';
+  ball.style.transform = 'translateX(-50%)';
   keeper.style.transform = 'translateX(-50%)';
 
   setTimeout(() => {
     ball.style.transition = 'transform 0.45s ease';
     keeper.style.transition = 'transform 0.35s ease';
 
-    // мяч летит в выбранную точку ворот
     ball.style.transform =
-      `translateX(calc(-50% + ${SHOT_X[dir]}px)) translateY(-155px)`;
+      `translateX(calc(-50% + ${SHOT_X[dir]}px)) translateY(-150px)`;
 
-    // вратарь прыгает
     keeper.style.transform =
       `translateX(calc(-50% + ${SHOT_X[keeperChoice]}px))`;
   }, 50);
