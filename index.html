@@ -61,7 +61,7 @@
     }
 
     .btn {
-      margin-top: 30px;
+      margin-top: 20px;
       width: 100%;
       padding: 18px;
       font-size: 18px;
@@ -106,8 +106,12 @@
         🔓 Открыть доступ
       </button>
 
+      <button class="btn secondary" onclick="confirmSubscribed()">
+        ✅ Я подписался
+      </button>
+
       <div class="hint">
-        Подписка займёт 5 секунд
+        Подписка занимает 5 секунд
       </div>
     </div>
   </div>
@@ -118,7 +122,7 @@
       <div class="badge">ГОТОВО?</div>
       <div class="title">Ты подписался?</div>
       <div class="subtitle">
-        Если да — давай проверим<br>
+        Тогда давай проверим<br>
         твою точность ⚽
       </div>
 
@@ -135,14 +139,15 @@
   <script>
     function openChannel() {
       window.open("https://t.me/fafashnenewatafa", "_blank");
+    }
 
-      // показываем экран подтверждения
+    function confirmSubscribed() {
       document.getElementById("screen-subscribe").classList.remove("active");
       document.getElementById("screen-confirm").classList.add("active");
     }
 
     function startGame() {
-      alert("Игра будет добавлена на следующем шаге ⚽");
+      alert("⚽ Игра с пенальти будет добавлена на следующем шаге!");
     }
   </script>
 
