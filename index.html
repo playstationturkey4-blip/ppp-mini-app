@@ -61,9 +61,9 @@
     }
 
     .btn {
-      margin-top: 20px;
+      margin-top: 16px;
       width: 100%;
-      padding: 18px;
+      padding: 16px;
       font-size: 18px;
       font-weight: 700;
       border: none;
@@ -86,7 +86,12 @@
     .hint {
       margin-top: 14px;
       font-size: 13px;
-      opacity: 0.5;
+      opacity: 0.6;
+    }
+
+    .goal {
+      font-size: 40px;
+      margin: 20px 0;
     }
   </style>
 </head>
@@ -102,17 +107,10 @@
         Доступ только для подписчиков.
       </div>
 
-      <button class="btn" onclick="openChannel()">
-        🔓 Открыть доступ
-      </button>
+      <button class="btn" onclick="openChannel()">🔓 Открыть доступ</button>
+      <button class="btn secondary" onclick="confirmSubscribed()">✅ Я подписался</button>
 
-      <button class="btn secondary" onclick="confirmSubscribed()">
-        ✅ Я подписался
-      </button>
-
-      <div class="hint">
-        Подписка занимает 5 секунд
-      </div>
+      <div class="hint">Подписка занимает 5 секунд</div>
     </div>
   </div>
 
@@ -122,17 +120,28 @@
       <div class="badge">ГОТОВО?</div>
       <div class="title">Ты подписался?</div>
       <div class="subtitle">
-        Тогда давай проверим<br>
-        твою точность ⚽
+        Тогда проверь свою<br>
+        точность ⚽
       </div>
 
-      <button class="btn secondary" onclick="startGame()">
-        ⚽ Начать серию пенальти
-      </button>
+      <button class="btn secondary" onclick="startGame()">⚽ Начать серию пенальти</button>
+    </div>
+  </div>
 
-      <div class="hint">
-        Игра откроется прямо сейчас
-      </div>
+  <!-- ЭКРАН 3: ИГРА -->
+  <div class="screen" id="screen-game">
+    <div class="card">
+      <div class="badge">PENALTY</div>
+      <div class="title">Бей пенальти</div>
+      <div class="subtitle">Выбери направление удара</div>
+
+      <div class="goal">🥅</div>
+
+      <button class="btn" onclick="shoot('left')">⬅️ Влево</button>
+      <button class="btn" onclick="shoot('center')">⬆️ Центр</button>
+      <button class="btn" onclick="shoot('right')">➡️ Вправо</button>
+
+      <div id="result" class="hint"></div>
     </div>
   </div>
 
@@ -147,7 +156,22 @@
     }
 
     function startGame() {
-      alert("⚽ Игра с пенальти будет добавлена на следующем шаге!");
+      document.getElementById("screen-confirm").classList.remove("active");
+      document.getElementById("screen-game").classList.add("active");
+    }
+
+    function shoot(direction) {
+      const choices = ['left', 'center', 'right'];
+      const keeper = choices[Math.floor(Math.random() * 3)];
+
+      let text = '';
+      if (direction === keeper) {
+        text = '❌ СЕЙВ! Вратарь угадал';
+      } else {
+        text = '⚽ ГОООЛ!';
+      }
+
+      document.getElementById('result').innerText = text;
     }
   </script>
 
