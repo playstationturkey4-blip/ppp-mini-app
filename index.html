@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Penalty Simulator</title>
+<title>Penalty Career</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -49,7 +49,7 @@ body {
   background: linear-gradient(#c0c0c0 0%, #d9d9d9 35%, #1e8f3a 35%);
   border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   cursor: crosshair;
 }
 
@@ -97,7 +97,7 @@ body {
   border: 3px solid #000;
   border-radius: 50%;
   transform: translateX(-50%);
-  transition: transform 0.45s ease;
+  transition: transform 0.5s ease;
 }
 
 .aim {
@@ -110,29 +110,39 @@ body {
   display: none;
 }
 
+/* ШКАЛА СИЛЫ */
+.power-bar {
+  height: 12px;
+  background: #333;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.power-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(
+    90deg,
+    red 0%,
+    orange 40%,
+    lime 60%,
+    orange 80%,
+    red 100%
+  );
+}
+
+.hint {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
 .result {
   text-align: center;
-  min-height: 22px;
   font-size: 15px;
   font-weight: 700;
-}
-
-.btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(135deg, #0088cc, #00c6ff);
-  color: #fff;
-  display: none;
-}
-
-.btn.restart {
-  background: linear-gradient(135deg, #1db954, #1ed760);
+  min-height: 22px;
 }
 </style>
 </head>
@@ -141,10 +151,8 @@ body {
 <div class="screen">
   <div class="card">
 
-    <div class="title">Серия пенальти</div>
-    <div class="stats" id="stats">
-      Удары: 0 / 5 · Голы: 0
-    </div>
+    <div class="title">Карьера · Пенальти</div>
+    <div class="stats" id="stats">Удары: 0 / 5 · Голы: 0 · Рейтинг: 60</div>
 
     <div class="stadium" id="stadium">
       <div class="goal" id="goal"></div>
@@ -153,10 +161,12 @@ body {
       <div class="aim" id="aim"></div>
     </div>
 
-    <div class="result" id="result">Наведи курсор и бей</div>
+    <div class="power-bar">
+      <div class="power-fill" id="powerFill"></div>
+    </div>
+    <div class="hint">Удерживай → отпусти в зелёной зоне</div>
 
-    <button class="btn" id="nextBtn" onclick="nextShot()">➡️ Следующий удар</button>
-    <button class="btn restart" id="restartBtn" onclick="restart()">🔁 Играть ещё</button>
+    <div class="result" id="result"></div>
 
   </div>
 </div>
@@ -164,100 +174,95 @@ body {
 <script>
 let shots = 0;
 let goals = 0;
+let rating = 60;
 const maxShots = 5;
+
+let power = 0;
+let powerInterval = null;
+let charging = false;
 let canShoot = true;
 
 const stadium = document.getElementById('stadium');
-const goal = document.getElementById('goal');
 const ball = document.getElementById('ball');
 const keeper = document.getElementById('keeper');
 const aim = document.getElementById('aim');
+const powerFill = document.getElementById('powerFill');
 const result = document.getElementById('result');
 const stats = document.getElementById('stats');
-const nextBtn = document.getElementById('nextBtn');
-const restartBtn = document.getElementById('restartBtn');
 
 /* прицел */
 stadium.addEventListener('mousemove', e => {
   if (!canShoot) return;
-  const rect = stadium.getBoundingClientRect();
-  aim.style.left = e.clientX - rect.left - 7 + 'px';
-  aim.style.top = e.clientY - rect.top - 7 + 'px';
+  const r = stadium.getBoundingClientRect();
+  aim.style.left = e.clientX - r.left - 7 + 'px';
+  aim.style.top = e.clientY - r.top - 7 + 'px';
   aim.style.display = 'block';
 });
 
+/* начало зарядки */
+stadium.addEventListener('mousedown', () => {
+  if (!canShoot) return;
+  charging = true;
+  power = 0;
+  powerFill.style.width = '0%';
+
+  powerInterval = setInterval(() => {
+    power += 2;
+    if (power > 100) power = 100;
+    powerFill.style.width = power + '%';
+  }, 30);
+});
+
 /* удар */
-stadium.addEventListener('click', e => {
-  if (!canShoot || shots >= maxShots) return;
+stadium.addEventListener('mouseup', e => {
+  if (!charging || !canShoot) return;
+  clearInterval(powerInterval);
+  charging = false;
   canShoot = false;
   shots++;
 
-  const rect = stadium.getBoundingClientRect();
-  const goalRect = goal.getBoundingClientRect();
+  const perfect = power >= 55 && power <= 65;
+  const saveChance = perfect ? 0.25 : power < 40 ? 0.6 : 0.4;
 
-  let x = e.clientX - rect.left;
-  let y = e.clientY - rect.top;
-
-  const gx = goalRect.left - rect.left;
-  const gy = goalRect.top - rect.top;
-
-  x = Math.min(Math.max(x, gx + 10), gx + goalRect.width - 10);
-  y = Math.min(Math.max(y, gy + 10), gy + goalRect.height - 10);
-
-  const keeperSave = Math.random() < 0.4;
+  const r = stadium.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
 
   ball.style.transform =
-    `translateX(calc(-50% + ${x - rect.width / 2}px))
-     translateY(${y - (rect.height - 20)}px)`;
+    `translateX(calc(-50% + ${x - r.width / 2}px))
+     translateY(${y - (r.height - 20)}px)`;
 
-  if (keeperSave) {
+  if (Math.random() < saveChance) {
     keeper.style.transform =
-      `translateX(calc(-50% + ${x - rect.width / 2}px))`;
+      `translateX(calc(-50% + ${x - r.width / 2}px))`;
   }
 
   setTimeout(() => {
-    if (keeperSave) {
-      result.innerText = '❌ СЕЙВ!';
+    if (Math.random() < saveChance) {
+      result.innerText = '❌ СЕЙВ';
     } else {
       goals++;
-      result.innerText = '⚽ ГОООЛ!';
+      rating += perfect ? 2 : 1;
+      result.innerText = perfect ? '🔥 ИДЕАЛЬНЫЙ ГОЛ!' : '⚽ ГОЛ';
     }
     updateStats();
-    showControls();
+    resetShot();
   }, 600);
 });
 
 function updateStats() {
-  stats.innerText = `Удары: ${shots} / ${maxShots} · Голы: ${goals}`;
+  stats.innerText =
+    `Удары: ${shots} / ${maxShots} · Голы: ${goals} · Рейтинг: ${rating}`;
 }
 
-function showControls() {
-  aim.style.display = 'none';
-  if (shots < maxShots) {
-    nextBtn.style.display = 'block';
-  } else {
-    restartBtn.style.display = 'block';
-    result.innerText = `🏁 Серия окончена: ${goals} из ${maxShots}`;
-  }
-}
-
-function nextShot() {
-  ball.style.transform = 'translateX(-50%)';
-  keeper.style.transform = 'translateX(-50%)';
-  nextBtn.style.display = 'none';
-  result.innerText = 'Наведи курсор и бей';
-  canShoot = true;
-}
-
-function restart() {
-  shots = 0;
-  goals = 0;
-  updateStats();
-  ball.style.transform = 'translateX(-50%)';
-  keeper.style.transform = 'translateX(-50%)';
-  result.innerText = 'Наведи курсор и бей';
-  restartBtn.style.display = 'none';
-  canShoot = true;
+function resetShot() {
+  setTimeout(() => {
+    ball.style.transform = 'translateX(-50%)';
+    keeper.style.transform = 'translateX(-50%)';
+    powerFill.style.width = '0%';
+    canShoot = true;
+    aim.style.display = 'none';
+  }, 700);
 }
 </script>
 </body>
