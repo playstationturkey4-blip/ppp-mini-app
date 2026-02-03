@@ -1,120 +1,136 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Penalty Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Penalty Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      background: #0b6623;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #fff;
-    }
+<style>
+body {
+  margin: 0;
+  background: #0b6623;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #fff;
+}
 
-    .screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+.screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 
-    .card {
-      width: 100%;
-      max-width: 420px;
-      background: #0f7a2e;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    }
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: #0f7a2e;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
 
-    .title {
-      text-align: center;
-      font-weight: 800;
-      font-size: 24px;
-      margin-bottom: 6px;
-    }
+.title {
+  text-align: center;
+  font-weight: 800;
+  font-size: 24px;
+}
 
-    .score {
-      text-align: center;
-      font-size: 14px;
-      opacity: 0.9;
-      margin-bottom: 10px;
-    }
+.score {
+  text-align: center;
+  font-size: 14px;
+  margin: 6px 0 12px;
+}
 
-    .field {
-      position: relative;
-      width: 100%;
-      height: 260px;
-      background: linear-gradient(#1e8f3a 50%, #178033 50%);
-      background-size: 100% 40px;
-      border-radius: 14px;
-      overflow: hidden;
-      margin-bottom: 15px;
-    }
+.field {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background: linear-gradient(#1e8f3a 50%, #178033 50%);
+  background-size: 100% 40px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
 
-    .goal {
-      position: absolute;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 180px;
-      height: 70px;
-      border: 4px solid #fff;
-      border-bottom: none;
-      box-sizing: border-box;
-    }
+/* Ворота */
+.goal {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 80px;
+  border: 4px solid #fff;
+  border-bottom: none;
+}
 
-    .keeper {
-      position: absolute;
-      top: 40px;
-      left: 50%;
-      width: 30px;
-      height: 30px;
-      background: #ffcc00;
-      border-radius: 50%;
-      transform: translateX(-50%);
-      transition: transform 0.4s ease;
-    }
+/* Вратарь */
+.keeper {
+  position: absolute;
+  top: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 36px;
+  background: #ffd700;
+  border-radius: 6px;
+  transition: transform 0.35s ease;
+}
+.keeper::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: #ffd700;
+  border-radius: 50%;
+}
 
-    .ball {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      width: 24px;
-      height: 24px;
-      background: #fff;
-      border: 3px solid #000;
-      border-radius: 50%;
-      transform: translateX(-50%);
-      transition: all 0.5s ease;
-    }
+/* Мяч */
+.ball {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  transition: all 0.45s ease;
+}
 
-    .btn {
-      width: 100%;
-      margin-top: 8px;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 700;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #0088cc, #00c6ff);
-      color: #fff;
-    }
+.btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0088cc, #00c6ff);
+  color: #fff;
+}
 
-    .result {
-      text-align: center;
-      margin-top: 8px;
-      min-height: 20px;
-      font-size: 14px;
-    }
-  </style>
+.result {
+  text-align: center;
+  margin-top: 6px;
+  min-height: 20px;
+}
+
+.restart {
+  display: none;
+  margin-top: 10px;
+  background: linear-gradient(135deg, #1db954, #1ed760);
+}
+</style>
 </head>
-<body>
 
+<body>
 <div class="screen">
   <div class="card">
 
@@ -132,58 +148,71 @@
     <button class="btn" onclick="shoot('right')">➡️ Вправо</button>
 
     <div class="result" id="result"></div>
+    <button class="btn restart" id="restartBtn" onclick="restart()">🔁 Играть ещё</button>
 
   </div>
 </div>
 
 <script>
-  let shots = 0;
-  let goals = 0;
-  const maxShots = 5;
+let shots = 0;
+let goals = 0;
+const maxShots = 5;
 
-  function shoot(direction) {
-    if (shots >= maxShots) return;
+function shoot(dir) {
+  if (shots >= maxShots) return;
 
-    shots++;
+  shots++;
 
-    const keeperChoice = ['left','center','right'][Math.floor(Math.random()*3)];
-    const ball = document.getElementById('ball');
-    const keeper = document.getElementById('keeper');
+  const keeperChoice = ['left','center','right'][Math.floor(Math.random()*3)];
+  const ball = document.getElementById('ball');
+  const keeper = document.getElementById('keeper');
 
-    // сброс позиций
-    ball.style.transition = 'none';
-    keeper.style.transition = 'none';
-    ball.style.transform = 'translateX(-50%)';
-    keeper.style.transform = 'translateX(-50%)';
+  ball.style.transition = 'none';
+  keeper.style.transition = 'none';
+  ball.style.transform = 'translateX(-50%) translateY(0)';
+  keeper.style.transform = 'translateX(-50%)';
 
-    setTimeout(() => {
-      ball.style.transition = 'all 0.5s ease';
-      keeper.style.transition = 'transform 0.4s ease';
+  setTimeout(() => {
+    ball.style.transition = 'all 0.45s ease';
+    keeper.style.transition = 'transform 0.35s ease';
 
-      if (direction === 'left') ball.style.transform = 'translateX(-120px) translateY(-140px)';
-      if (direction === 'center') ball.style.transform = 'translateX(-50%) translateY(-160px)';
-      if (direction === 'right') ball.style.transform = 'translateX(80px) translateY(-140px)';
+    if (dir === 'left') ball.style.transform = 'translateX(-110%) translateY(-150px)';
+    if (dir === 'center') ball.style.transform = 'translateX(-50%) translateY(-165px)';
+    if (dir === 'right') ball.style.transform = 'translateX(10%) translateY(-150px)';
 
-      if (keeperChoice === 'left') keeper.style.transform = 'translateX(-90px)';
-      if (keeperChoice === 'right') keeper.style.transform = 'translateX(60px)';
-    }, 50);
+    if (keeperChoice === 'left') keeper.style.transform = 'translateX(-110%)';
+    if (keeperChoice === 'right') keeper.style.transform = 'translateX(10%)';
+  }, 50);
 
-    setTimeout(() => {
-      if (direction === keeperChoice) {
-        document.getElementById('result').innerText = '❌ СЕЙВ!';
-      } else {
-        goals++;
-        document.getElementById('result').innerText = '⚽ ГОООЛ!';
-      }
-      updateScore();
-    }, 600);
+  setTimeout(() => {
+    if (dir === keeperChoice) {
+      document.getElementById('result').innerText = '❌ СЕЙВ!';
+    } else {
+      goals++;
+      document.getElementById('result').innerText = '⚽ ГОООЛ!';
+    }
+    updateScore();
+  }, 500);
+}
+
+function updateScore() {
+  document.getElementById('scoreText').innerText =
+    `Удар: ${Math.min(shots+1,5)} / ${maxShots} · Голы: ${goals}`;
+
+  if (shots === maxShots) {
+    document.getElementById('result').innerText =
+      `🏁 Серия окончена: ${goals} из ${maxShots}`;
+    document.getElementById('restartBtn').style.display = 'block';
   }
+}
 
-  function updateScore() {
-    document.getElementById('scoreText').innerText =
-      `Удар: ${shots + 1} / ${maxShots} · Голы: ${goals}`;
-  }
+function restart() {
+  shots = 0;
+  goals = 0;
+  document.getElementById('result').innerText = '';
+  document.getElementById('restartBtn').style.display = 'none';
+  updateScore();
+}
 </script>
-
 </body>
 </html>
