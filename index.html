@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* ===== ОСНОВА ===== */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -13,11 +14,11 @@ body {
   color: #fff;
 }
 
-/* Общий экран */
+/* Центрируем игру */
 .screen {
   min-height: 100vh;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   padding: 20px;
 }
@@ -32,14 +33,13 @@ body {
   box-shadow: 0 30px 60px rgba(0,0,0,0.45);
 }
 
-/* Заголовок */
+/* Заголовки */
 .title {
   text-align: center;
   font-weight: 800;
   font-size: 22px;
 }
 
-/* Счёт */
 .score {
   text-align: center;
   font-size: 14px;
@@ -47,11 +47,11 @@ body {
   opacity: 0.95;
 }
 
-/* СТАДИОН */
+/* ===== СТАДИОН ===== */
 .stadium {
   position: relative;
   width: 100%;
-  height: 260px;
+  height: 230px;
   background: linear-gradient(#c0c0c0 0%, #d9d9d9 35%, #1e8f3a 35%);
   border-radius: 14px;
   overflow: hidden;
@@ -78,19 +78,19 @@ body {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 170px;
+  height: 150px;
   background: linear-gradient(#1e8f3a 50%, #178033 50%);
-  background-size: 100% 40px;
+  background-size: 100% 36px;
 }
 
 /* Ворота */
 .goal {
   position: absolute;
-  top: 40px;
+  top: 42px;
   left: 50%;
   transform: translateX(-50%);
   width: 200px;
-  height: 80px;
+  height: 78px;
   border: 4px solid #fff;
   border-bottom: none;
 }
@@ -122,7 +122,7 @@ body {
 /* Мяч */
 .ball {
   position: absolute;
-  bottom: 25px;
+  bottom: 20px;
   left: 50%;
   width: 22px;
   height: 22px;
@@ -147,16 +147,16 @@ body {
   color: #fff;
 }
 
-.result {
-  text-align: center;
-  margin-top: 6px;
-  min-height: 20px;
-}
-
 .restart {
   display: none;
   margin-top: 10px;
   background: linear-gradient(135deg, #1db954, #1ed760);
+}
+
+.result {
+  text-align: center;
+  margin-top: 6px;
+  min-height: 20px;
 }
 </style>
 </head>
@@ -191,7 +191,12 @@ let shots = 0;
 let goals = 0;
 const maxShots = 5;
 
-const SHOT_X = { left: -80, center: 0, right: 80 };
+// точки ударов относительно центра ворот
+const SHOT_X = {
+  left: -80,
+  center: 0,
+  right: 80
+};
 
 function shoot(dir) {
   if (shots >= maxShots) return;
@@ -201,6 +206,7 @@ function shoot(dir) {
   const ball = document.getElementById('ball');
   const keeper = document.getElementById('keeper');
 
+  // сброс
   ball.style.transition = 'none';
   keeper.style.transition = 'none';
   ball.style.transform = 'translateX(-50%)';
@@ -211,7 +217,7 @@ function shoot(dir) {
     keeper.style.transition = 'transform 0.35s ease';
 
     ball.style.transform =
-      `translateX(calc(-50% + ${SHOT_X[dir]}px)) translateY(-150px)`;
+      `translateX(calc(-50% + ${SHOT_X[dir]}px)) translateY(-145px)`;
 
     keeper.style.transform =
       `translateX(calc(-50% + ${SHOT_X[keeperChoice]}px))`;
@@ -230,7 +236,7 @@ function shoot(dir) {
 
 function updateScore() {
   document.getElementById('scoreText').innerText =
-    `Удар: ${Math.min(shots+1,5)} / ${maxShots} · Голы: ${goals}`;
+    `Удар: ${Math.min(shots + 1, 5)} / ${maxShots} · Голы: ${goals}`;
 
   if (shots === maxShots) {
     document.getElementById('result').innerText =
