@@ -50,7 +50,6 @@ body {
   background-size: 100% 40px;
   border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 12px;
 }
 
 /* Ворота */
@@ -68,13 +67,13 @@ body {
 /* Вратарь */
 .keeper {
   position: absolute;
-  top: 45px;
+  top: 48px;
   left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
+  width: 24px;
   height: 36px;
   background: #ffd700;
   border-radius: 6px;
+  transform: translateX(-50%);
   transition: transform 0.35s ease;
 }
 .keeper::before {
@@ -99,8 +98,8 @@ body {
   background: #fff;
   border: 3px solid #000;
   border-radius: 50%;
-  transform: translateX(-50%);
-  transition: all 0.45s ease;
+  transform: translateX(-50%) translateY(0);
+  transition: transform 0.45s ease;
 }
 
 .btn {
@@ -143,9 +142,9 @@ body {
       <div class="ball" id="ball"></div>
     </div>
 
-    <button class="btn" onclick="shoot('left')">⬅️ Влево</button>
-    <button class="btn" onclick="shoot('center')">⬆️ Центр</button>
-    <button class="btn" onclick="shoot('right')">➡️ Вправо</button>
+    <button class="btn" onclick="shoot('left')">⬅️ В левый угол</button>
+    <button class="btn" onclick="shoot('center')">⬆️ По центру</button>
+    <button class="btn" onclick="shoot('right')">➡️ В правый угол</button>
 
     <div class="result" id="result"></div>
     <button class="btn restart" id="restartBtn" onclick="restart()">🔁 Играть ещё</button>
@@ -158,6 +157,13 @@ let shots = 0;
 let goals = 0;
 const maxShots = 5;
 
+// координаты ударов относительно центра ворот
+const SHOT_X = {
+  left: -80,
+  center: 0,
+  right: 80
+};
+
 function shoot(dir) {
   if (shots >= maxShots) return;
 
@@ -167,21 +173,23 @@ function shoot(dir) {
   const ball = document.getElementById('ball');
   const keeper = document.getElementById('keeper');
 
+  // сброс
   ball.style.transition = 'none';
   keeper.style.transition = 'none';
   ball.style.transform = 'translateX(-50%) translateY(0)';
   keeper.style.transform = 'translateX(-50%)';
 
   setTimeout(() => {
-    ball.style.transition = 'all 0.45s ease';
+    ball.style.transition = 'transform 0.45s ease';
     keeper.style.transition = 'transform 0.35s ease';
 
-    if (dir === 'left') ball.style.transform = 'translateX(-110%) translateY(-150px)';
-    if (dir === 'center') ball.style.transform = 'translateX(-50%) translateY(-165px)';
-    if (dir === 'right') ball.style.transform = 'translateX(10%) translateY(-150px)';
+    // мяч летит в выбранную точку ворот
+    ball.style.transform =
+      `translateX(calc(-50% + ${SHOT_X[dir]}px)) translateY(-155px)`;
 
-    if (keeperChoice === 'left') keeper.style.transform = 'translateX(-110%)';
-    if (keeperChoice === 'right') keeper.style.transform = 'translateX(10%)';
+    // вратарь прыгает
+    keeper.style.transform =
+      `translateX(calc(-50% + ${SHOT_X[keeperChoice]}px))`;
   }, 50);
 
   setTimeout(() => {
