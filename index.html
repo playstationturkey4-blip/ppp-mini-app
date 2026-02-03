@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Penalty Career Progress</title>
+<title>Penalty Career Records</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -52,11 +52,16 @@ body {
 .menu-btn.play { background: linear-gradient(135deg,#00c6ff,#0088cc); }
 .menu-btn.career { background: linear-gradient(135deg,#1ed760,#1db954); }
 .menu-btn.progress { background: linear-gradient(135deg,#ffb347,#ff7f50); }
+.menu-btn.records { background: linear-gradient(135deg,#ff512f,#dd2476); }
 
-.title { text-align:center;font-weight:800;font-size:22px; }
-.stats { text-align:center;font-size:14px;margin:6px 0 10px; }
+.title {
+  text-align:center;
+  font-weight:800;
+  font-size:22px;
+  margin-bottom:10px;
+}
 
-.progress-item {
+.record-item {
   display:flex;
   justify-content:space-between;
   margin:8px 0;
@@ -84,67 +89,52 @@ body {
 <div class="screen active" id="menu">
   <div class="card">
     <div class="menu-title">PENALTY GAME</div>
-    <button class="menu-btn play" onclick="startGame(false)">🎮 Новая игра</button>
-    <button class="menu-btn career" onclick="startGame(true)">⭐ Карьера</button>
-    <button class="menu-btn progress" onclick="openProgress()">📈 Прогресс</button>
+    <button class="menu-btn play">🎮 Новая игра</button>
+    <button class="menu-btn career">⭐ Карьера</button>
+    <button class="menu-btn progress">📈 Прогресс</button>
+    <button class="menu-btn records" onclick="openRecords()">🏆 Рекорды</button>
   </div>
 </div>
 
-<!-- ПРОГРЕСС -->
-<div class="screen" id="progress">
+<!-- РЕКОРДЫ -->
+<div class="screen" id="records">
   <div class="card">
-    <div class="title">Прогресс игрока</div>
+    <div class="title">Рекорды</div>
 
-    <div class="progress-item"><span>Текущий рейтинг</span><span id="pRating"></span></div>
-    <div class="progress-item"><span>Лучший рейтинг</span><span id="pBestRating"></span></div>
-    <div class="progress-item"><span>Всего голов</span><span id="pGoals"></span></div>
-    <div class="progress-item"><span>Лучший результат</span><span id="pBestSeries"></span></div>
-    <div class="progress-item"><span>Лучший стрик</span><span id="pStreak"></span></div>
-    <div class="progress-item"><span>Серий сыграно</span><span id="pSeries"></span></div>
+    <div class="record-item"><span>Лучший результат</span><span id="rBestSeries"></span></div>
+    <div class="record-item"><span>Лучший стрик</span><span id="rBestStreak"></span></div>
+    <div class="record-item"><span>Всего голов</span><span id="rTotalGoals"></span></div>
+    <div class="record-item"><span>Лучший рейтинг</span><span id="rBestRating"></span></div>
 
     <button class="back-btn" onclick="backToMenu()">⬅️ В меню</button>
   </div>
 </div>
 
 <script>
-/* === ПРОГРЕСС (localStorage) === */
+/* === РЕКОРДЫ И ПРОГРЕСС === */
 function getProgress() {
   return JSON.parse(localStorage.getItem('progress')) || {
     rating: 60,
     bestRating: 60,
     totalGoals: 0,
     bestSeries: 0,
-    bestStreak: 0,
-    seriesPlayed: 0
+    bestStreak: 0
   };
 }
 
-function saveProgress(p) {
-  localStorage.setItem('progress', JSON.stringify(p));
-}
-
-/* === МЕНЮ === */
-function startGame(isCareer) {
-  alert(isCareer
-    ? 'Карьера запущена (игровая логика остаётся как раньше)'
-    : 'Новая игра запущена');
-}
-
-function openProgress() {
+function openRecords() {
   const p = getProgress();
-  document.getElementById('pRating').innerText = p.rating;
-  document.getElementById('pBestRating').innerText = p.bestRating;
-  document.getElementById('pGoals').innerText = p.totalGoals;
-  document.getElementById('pBestSeries').innerText = p.bestSeries + ' / 5';
-  document.getElementById('pStreak').innerText = p.bestStreak;
-  document.getElementById('pSeries').innerText = p.seriesPlayed;
+  document.getElementById('rBestSeries').innerText = p.bestSeries + ' / 5';
+  document.getElementById('rBestStreak').innerText = p.bestStreak;
+  document.getElementById('rTotalGoals').innerText = p.totalGoals;
+  document.getElementById('rBestRating').innerText = p.bestRating;
 
   document.getElementById('menu').classList.remove('active');
-  document.getElementById('progress').classList.add('active');
+  document.getElementById('records').classList.add('active');
 }
 
 function backToMenu() {
-  document.getElementById('progress').classList.remove('active');
+  document.getElementById('records').classList.remove('active');
   document.getElementById('menu').classList.add('active');
 }
 </script>
