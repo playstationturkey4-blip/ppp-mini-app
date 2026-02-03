@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Penalty Career Records</title>
+<title>Penalty Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -13,6 +13,7 @@ body {
   color: #fff;
 }
 
+/* экраны */
 .screen {
   min-height: 100vh;
   display: none;
@@ -22,22 +23,23 @@ body {
 }
 .screen.active { display: flex; }
 
+/* карточка */
 .card {
   width: 100%;
   max-width: 420px;
-  background: rgba(15,122,46,.95);
+  background: rgba(15,122,46,0.95);
   border-radius: 20px;
   padding: 18px;
-  box-shadow: 0 30px 60px rgba(0,0,0,.45);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.45);
 }
 
+/* меню */
 .menu-title {
   text-align: center;
   font-size: 26px;
   font-weight: 900;
   margin-bottom: 20px;
 }
-
 .menu-btn {
   width: 100%;
   padding: 16px;
@@ -54,31 +56,121 @@ body {
 .menu-btn.progress { background: linear-gradient(135deg,#ffb347,#ff7f50); }
 .menu-btn.records { background: linear-gradient(135deg,#ff512f,#dd2476); }
 
-.title {
+/* игра */
+.title { text-align:center;font-weight:800;font-size:22px; }
+.stats { text-align:center;font-size:14px;margin:6px 0 10px; }
+
+.stadium {
+  position: relative;
+  width: 100%;
+  height: 230px;
+  background: linear-gradient(#c0c0c0 0%, #d9d9d9 35%, #1e8f3a 35%);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.goal {
+  position:absolute;
+  top:42px;
+  left:50%;
+  transform:translateX(-50%);
+  width:200px;
+  height:78px;
+  border:4px solid #fff;
+  border-bottom:none;
+}
+
+.keeper {
+  position:absolute;
+  top:70px;
+  left:50%;
+  width:24px;
+  height:36px;
+  background:#ffd700;
+  border-radius:6px;
+  transform:translateX(-50%);
+  transition:transform .35s ease;
+}
+.keeper::before {
+  content:"";
+  position:absolute;
+  top:-14px;
+  left:50%;
+  transform:translateX(-50%);
+  width:16px;
+  height:16px;
+  background:#ffd700;
+  border-radius:50%;
+}
+
+.ball {
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  width:22px;
+  height:22px;
+  background:#fff;
+  border:3px solid #000;
+  border-radius:50%;
+  transform:translateX(-50%);
+  transition:transform .5s ease;
+}
+
+.aim {
+  position:absolute;
+  width:14px;
+  height:14px;
+  border:2px solid red;
+  border-radius:50%;
+  pointer-events:none;
+  display:none;
+}
+
+/* шкала силы */
+.power-bar {
+  height:12px;
+  background:#333;
+  border-radius:6px;
+  overflow:hidden;
+  margin-top:10px;
+}
+.power-fill {
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,red,orange,lime,orange,red);
+}
+
+.result {
   text-align:center;
-  font-weight:800;
-  font-size:22px;
-  margin-bottom:10px;
+  font-weight:700;
+  min-height:22px;
+  margin-top:6px;
 }
 
-.record-item {
-  display:flex;
-  justify-content:space-between;
-  margin:8px 0;
-  font-size:15px;
-}
-
-.back-btn {
-  margin-top:16px;
+/* кнопки */
+.btn {
   width:100%;
+  margin-top:8px;
   padding:14px;
   font-size:16px;
   font-weight:700;
   border-radius:12px;
   border:none;
   cursor:pointer;
-  background:linear-gradient(135deg,#0088cc,#00c6ff);
+  display:none;
   color:#fff;
+}
+.btn.next { background:linear-gradient(135deg,#00c6ff,#0088cc); }
+.btn.restart { background:linear-gradient(135deg,#1db954,#1ed760); }
+.btn.back { background:linear-gradient(135deg,#555,#777); }
+
+/* списки */
+.item {
+  display:flex;
+  justify-content:space-between;
+  margin:8px 0;
+  font-size:15px;
 }
 </style>
 </head>
@@ -89,10 +181,44 @@ body {
 <div class="screen active" id="menu">
   <div class="card">
     <div class="menu-title">PENALTY GAME</div>
-    <button class="menu-btn play">🎮 Новая игра</button>
-    <button class="menu-btn career">⭐ Карьера</button>
-    <button class="menu-btn progress">📈 Прогресс</button>
+    <button class="menu-btn play" onclick="startGame(false)">🎮 Новая игра</button>
+    <button class="menu-btn career" onclick="startGame(true)">⭐ Карьера</button>
+    <button class="menu-btn progress" onclick="openProgress()">📈 Прогресс</button>
     <button class="menu-btn records" onclick="openRecords()">🏆 Рекорды</button>
+  </div>
+</div>
+
+<!-- ИГРА -->
+<div class="screen" id="game">
+  <div class="card">
+    <div class="title" id="modeTitle"></div>
+    <div class="stats" id="stats"></div>
+
+    <div class="stadium" id="stadium">
+      <div class="goal"></div>
+      <div class="keeper" id="keeper"></div>
+      <div class="ball" id="ball"></div>
+      <div class="aim" id="aim"></div>
+    </div>
+
+    <div class="power-bar"><div class="power-fill" id="powerFill"></div></div>
+    <div class="result" id="result">Наведи, зажми и бей</div>
+
+    <button class="btn next" id="nextBtn">➡️ Следующий удар</button>
+    <button class="btn restart" id="restartBtn">🔁 Новая серия</button>
+    <button class="btn back" onclick="backToMenu()">⬅️ В меню</button>
+  </div>
+</div>
+
+<!-- ПРОГРЕСС -->
+<div class="screen" id="progress">
+  <div class="card">
+    <div class="title">Прогресс</div>
+    <div class="item"><span>Текущий рейтинг</span><span id="pRating"></span></div>
+    <div class="item"><span>Лучший рейтинг</span><span id="pBestRating"></span></div>
+    <div class="item"><span>Всего голов</span><span id="pGoals"></span></div>
+    <div class="item"><span>Серий сыграно</span><span id="pSeries"></span></div>
+    <button class="btn back" style="display:block" onclick="backToMenu()">⬅️ В меню</button>
   </div>
 </div>
 
@@ -100,42 +226,173 @@ body {
 <div class="screen" id="records">
   <div class="card">
     <div class="title">Рекорды</div>
-
-    <div class="record-item"><span>Лучший результат</span><span id="rBestSeries"></span></div>
-    <div class="record-item"><span>Лучший стрик</span><span id="rBestStreak"></span></div>
-    <div class="record-item"><span>Всего голов</span><span id="rTotalGoals"></span></div>
-    <div class="record-item"><span>Лучший рейтинг</span><span id="rBestRating"></span></div>
-
-    <button class="back-btn" onclick="backToMenu()">⬅️ В меню</button>
+    <div class="item"><span>Лучший результат</span><span id="rBestSeries"></span></div>
+    <div class="item"><span>Лучший стрик</span><span id="rBestStreak"></span></div>
+    <div class="item"><span>Всего голов</span><span id="rTotalGoals"></span></div>
+    <button class="btn back" style="display:block" onclick="backToMenu()">⬅️ В меню</button>
   </div>
 </div>
 
 <script>
-/* === РЕКОРДЫ И ПРОГРЕСС === */
-function getProgress() {
+/* ===== ПРОГРЕСС ===== */
+function getProgress(){
   return JSON.parse(localStorage.getItem('progress')) || {
-    rating: 60,
-    bestRating: 60,
-    totalGoals: 0,
-    bestSeries: 0,
-    bestStreak: 0
+    rating:60,
+    bestRating:60,
+    totalGoals:0,
+    seriesPlayed:0,
+    bestSeries:0,
+    bestStreak:0
   };
 }
-
-function openRecords() {
-  const p = getProgress();
-  document.getElementById('rBestSeries').innerText = p.bestSeries + ' / 5';
-  document.getElementById('rBestStreak').innerText = p.bestStreak;
-  document.getElementById('rTotalGoals').innerText = p.totalGoals;
-  document.getElementById('rBestRating').innerText = p.bestRating;
-
-  document.getElementById('menu').classList.remove('active');
-  document.getElementById('records').classList.add('active');
+function saveProgress(p){
+  localStorage.setItem('progress',JSON.stringify(p));
 }
 
-function backToMenu() {
-  document.getElementById('records').classList.remove('active');
-  document.getElementById('menu').classList.add('active');
+/* ===== ИГРА ===== */
+let shots, goals, rating, career;
+let power=0, charging=false, interval, canShoot=true;
+let currentStreak=0;
+const maxShots=5;
+
+const screens=document.querySelectorAll('.screen');
+const stats=document.getElementById('stats');
+const modeTitle=document.getElementById('modeTitle');
+const stadium=document.getElementById('stadium');
+const ball=document.getElementById('ball');
+const keeper=document.getElementById('keeper');
+const aim=document.getElementById('aim');
+const powerFill=document.getElementById('powerFill');
+const result=document.getElementById('result');
+const nextBtn=document.getElementById('nextBtn');
+const restartBtn=document.getElementById('restartBtn');
+
+function showScreen(id){
+  screens.forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame(isCareer){
+  career=isCareer;
+  shots=0; goals=0; currentStreak=0;
+  const p=getProgress();
+  rating=isCareer?p.rating:60;
+  modeTitle.innerText=isCareer?'Карьера':'Новая игра';
+  updateStats();
+  showScreen('game');
+}
+
+function updateStats(){
+  stats.innerText=`Удары: ${shots}/5 · Голы: ${goals} · Рейтинг: ${rating}`;
+}
+
+stadium.addEventListener('mousemove',e=>{
+  if(!canShoot) return;
+  const r=stadium.getBoundingClientRect();
+  aim.style.left=e.clientX-r.left-7+'px';
+  aim.style.top=e.clientY-r.top-7+'px';
+  aim.style.display='block';
+});
+
+stadium.addEventListener('mousedown',()=>{
+  if(!canShoot) return;
+  charging=true; power=0; powerFill.style.width='0%';
+  interval=setInterval(()=>{
+    power=Math.min(power+2,100);
+    powerFill.style.width=power+'%';
+  },30);
+});
+
+stadium.addEventListener('mouseup',e=>{
+  if(!charging||!canShoot) return;
+  clearInterval(interval); charging=false; canShoot=false;
+  shots++;
+
+  const r=stadium.getBoundingClientRect();
+  const x=e.clientX-r.left;
+  const y=e.clientY-r.top;
+
+  ball.style.transform=`translateX(calc(-50% + ${x-r.width/2}px)) translateY(${y-(r.height-20)}px)`;
+
+  const save=Math.random()<0.4;
+  if(save){
+    keeper.style.transform=`translateX(calc(-50% + ${x-r.width/2}px))`;
+    result.innerText='❌ СЕЙВ';
+    currentStreak=0;
+  }else{
+    goals++;
+    currentStreak++;
+    result.innerText='⚽ ГОЛ';
+    if(career && rating<99) rating++;
+  }
+
+  updateStats();
+  setTimeout(showAfterShot,600);
+});
+
+function showAfterShot(){
+  aim.style.display='none';
+  powerFill.style.width='0%';
+  if(shots<maxShots){
+    nextBtn.style.display='block';
+  }else{
+    finishSeries();
+  }
+}
+
+nextBtn.onclick=()=>{
+  resetShot();
+  nextBtn.style.display='none';
+};
+
+function finishSeries(){
+  const p=getProgress();
+  if(career){
+    p.rating=rating;
+    p.bestRating=Math.max(p.bestRating,rating);
+    p.totalGoals+=goals;
+    p.seriesPlayed++;
+    p.bestSeries=Math.max(p.bestSeries,goals);
+    p.bestStreak=Math.max(p.bestStreak,currentStreak);
+    saveProgress(p);
+  }
+  result.innerText=`🏁 Серия окончена: ${goals} из 5`;
+  restartBtn.style.display='block';
+}
+
+restartBtn.onclick=()=>{
+  shots=0; goals=0; currentStreak=0;
+  restartBtn.style.display='none';
+  updateStats();
+  resetShot();
+};
+
+function resetShot(){
+  ball.style.transform='translateX(-50%)';
+  keeper.style.transform='translateX(-50%)';
+  result.innerText='Наведи, зажми и бей';
+  canShoot=true;
+}
+
+function openProgress(){
+  const p=getProgress();
+  document.getElementById('pRating').innerText=p.rating;
+  document.getElementById('pBestRating').innerText=p.bestRating;
+  document.getElementById('pGoals').innerText=p.totalGoals;
+  document.getElementById('pSeries').innerText=p.seriesPlayed;
+  showScreen('progress');
+}
+
+function openRecords(){
+  const p=getProgress();
+  document.getElementById('rBestSeries').innerText=p.bestSeries+' / 5';
+  document.getElementById('rBestStreak').innerText=p.bestStreak;
+  document.getElementById('rTotalGoals').innerText=p.totalGoals;
+  showScreen('records');
+}
+
+function backToMenu(){
+  showScreen('menu');
 }
 </script>
 
