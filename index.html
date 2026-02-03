@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Penalty Aim</title>
+<title>Penalty Simulator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -36,7 +36,7 @@ body {
   font-size: 22px;
 }
 
-.score {
+.stats {
   text-align: center;
   font-size: 14px;
   margin: 6px 0 10px;
@@ -50,6 +50,7 @@ body {
   border-radius: 14px;
   overflow: hidden;
   margin-bottom: 12px;
+  cursor: crosshair;
 }
 
 .goal {
@@ -99,7 +100,6 @@ body {
   transition: transform 0.45s ease;
 }
 
-/* ПРИЦЕЛ */
 .aim {
   position: absolute;
   width: 14px;
@@ -112,7 +112,27 @@ body {
 
 .result {
   text-align: center;
-  min-height: 20px;
+  min-height: 22px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0088cc, #00c6ff);
+  color: #fff;
+  display: none;
+}
+
+.btn.restart {
+  background: linear-gradient(135deg, #1db954, #1ed760);
 }
 </style>
 </head>
@@ -121,8 +141,10 @@ body {
 <div class="screen">
   <div class="card">
 
-    <div class="title">Пенальти</div>
-    <div class="score" id="scoreText">Удар: 1 / 5 · Голы: 0</div>
+    <div class="title">Серия пенальти</div>
+    <div class="stats" id="stats">
+      Удары: 0 / 5 · Голы: 0
+    </div>
 
     <div class="stadium" id="stadium">
       <div class="goal" id="goal"></div>
@@ -131,7 +153,10 @@ body {
       <div class="aim" id="aim"></div>
     </div>
 
-    <div class="result" id="result">Наведи и нажми по воротам</div>
+    <div class="result" id="result">Наведи курсор и бей</div>
+
+    <button class="btn" id="nextBtn" onclick="nextShot()">➡️ Следующий удар</button>
+    <button class="btn restart" id="restartBtn" onclick="restart()">🔁 Играть ещё</button>
 
   </div>
 </div>
@@ -140,81 +165,100 @@ body {
 let shots = 0;
 let goals = 0;
 const maxShots = 5;
+let canShoot = true;
 
 const stadium = document.getElementById('stadium');
 const goal = document.getElementById('goal');
 const ball = document.getElementById('ball');
 const keeper = document.getElementById('keeper');
 const aim = document.getElementById('aim');
+const result = document.getElementById('result');
+const stats = document.getElementById('stats');
+const nextBtn = document.getElementById('nextBtn');
+const restartBtn = document.getElementById('restartBtn');
 
-let canShoot = true;
-
-// движение прицела
+/* прицел */
 stadium.addEventListener('mousemove', e => {
+  if (!canShoot) return;
   const rect = stadium.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  aim.style.left = x - 7 + 'px';
-  aim.style.top = y - 7 + 'px';
+  aim.style.left = e.clientX - rect.left - 7 + 'px';
+  aim.style.top = e.clientY - rect.top - 7 + 'px';
   aim.style.display = 'block';
 });
 
-// удар
+/* удар */
 stadium.addEventListener('click', e => {
   if (!canShoot || shots >= maxShots) return;
   canShoot = false;
   shots++;
 
   const rect = stadium.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  // ограничиваем удар рамками ворот
   const goalRect = goal.getBoundingClientRect();
+
+  let x = e.clientX - rect.left;
+  let y = e.clientY - rect.top;
+
   const gx = goalRect.left - rect.left;
   const gy = goalRect.top - rect.top;
 
-  const targetX = Math.min(Math.max(x, gx + 10), gx + goalRect.width - 10);
-  const targetY = Math.min(Math.max(y, gy + 10), gy + goalRect.height - 10);
+  x = Math.min(Math.max(x, gx + 10), gx + goalRect.width - 10);
+  y = Math.min(Math.max(y, gy + 10), gy + goalRect.height - 10);
 
-  // мяч летит в точку
+  const keeperSave = Math.random() < 0.4;
+
   ball.style.transform =
-    `translateX(calc(-50% + ${targetX - rect.width / 2}px))
-     translateY(${targetY - (rect.height - 20)}px)`;
+    `translateX(calc(-50% + ${x - rect.width / 2}px))
+     translateY(${y - (rect.height - 20)}px)`;
 
-  // вратарь угадывает или нет
-  const saveChance = Math.random() < 0.4;
-  if (saveChance) {
+  if (keeperSave) {
     keeper.style.transform =
-      `translateX(calc(-50% + ${targetX - rect.width / 2}px))`;
+      `translateX(calc(-50% + ${x - rect.width / 2}px))`;
   }
 
   setTimeout(() => {
-    if (saveChance) {
-      document.getElementById('result').innerText = '❌ СЕЙВ!';
+    if (keeperSave) {
+      result.innerText = '❌ СЕЙВ!';
     } else {
       goals++;
-      document.getElementById('result').innerText = '⚽ ГОООЛ!';
+      result.innerText = '⚽ ГОООЛ!';
     }
-    updateScore();
-    resetShot();
+    updateStats();
+    showControls();
   }, 600);
 });
 
-function updateScore() {
-  document.getElementById('scoreText').innerText =
-    `Удар: ${Math.min(shots + 1, 5)} / ${maxShots} · Голы: ${goals}`;
+function updateStats() {
+  stats.innerText = `Удары: ${shots} / ${maxShots} · Голы: ${goals}`;
 }
 
-function resetShot() {
-  setTimeout(() => {
-    ball.style.transform = 'translateX(-50%)';
-    keeper.style.transform = 'translateX(-50%)';
-    canShoot = true;
-  }, 500);
+function showControls() {
+  aim.style.display = 'none';
+  if (shots < maxShots) {
+    nextBtn.style.display = 'block';
+  } else {
+    restartBtn.style.display = 'block';
+    result.innerText = `🏁 Серия окончена: ${goals} из ${maxShots}`;
+  }
+}
+
+function nextShot() {
+  ball.style.transform = 'translateX(-50%)';
+  keeper.style.transform = 'translateX(-50%)';
+  nextBtn.style.display = 'none';
+  result.innerText = 'Наведи курсор и бей';
+  canShoot = true;
+}
+
+function restart() {
+  shots = 0;
+  goals = 0;
+  updateStats();
+  ball.style.transform = 'translateX(-50%)';
+  keeper.style.transform = 'translateX(-50%)';
+  result.innerText = 'Наведи курсор и бей';
+  restartBtn.style.display = 'none';
+  canShoot = true;
 }
 </script>
 </body>
 </html>
-
