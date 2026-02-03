@@ -48,20 +48,32 @@
     }
 
     .title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 800;
       letter-spacing: 2px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .subtitle {
       font-size: 16px;
       opacity: 0.8;
       line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .score {
+      font-size: 15px;
+      margin: 10px 0;
+      opacity: 0.85;
+    }
+
+    .goal {
+      font-size: 40px;
+      margin: 20px 0;
     }
 
     .btn {
-      margin-top: 16px;
+      margin-top: 14px;
       width: 100%;
       padding: 16px;
       font-size: 18px;
@@ -84,14 +96,9 @@
     }
 
     .hint {
-      margin-top: 14px;
-      font-size: 13px;
-      opacity: 0.6;
-    }
-
-    .goal {
-      font-size: 40px;
-      margin: 20px 0;
+      margin-top: 12px;
+      font-size: 14px;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -132,8 +139,11 @@
   <div class="screen" id="screen-game">
     <div class="card">
       <div class="badge">PENALTY</div>
-      <div class="title">Бей пенальти</div>
-      <div class="subtitle">Выбери направление удара</div>
+      <div class="title">Серия пенальти</div>
+
+      <div class="score" id="scoreText">
+        Удар: 1 / 5 · Голы: 0
+      </div>
 
       <div class="goal">🥅</div>
 
@@ -142,10 +152,15 @@
       <button class="btn" onclick="shoot('right')">➡️ Вправо</button>
 
       <div id="result" class="hint"></div>
+      <button id="restartBtn" class="btn secondary" style="display:none;" onclick="restartGame()">🔁 Играть ещё</button>
     </div>
   </div>
 
   <script>
+    let shots = 0;
+    let goals = 0;
+    const maxShots = 5;
+
     function openChannel() {
       window.open("https://t.me/fafashnenewatafa", "_blank");
     }
@@ -156,24 +171,55 @@
     }
 
     function startGame() {
+      shots = 0;
+      goals = 0;
+      updateScore();
+      document.getElementById("result").innerText = '';
+      document.getElementById("restartBtn").style.display = 'none';
+
       document.getElementById("screen-confirm").classList.remove("active");
       document.getElementById("screen-game").classList.add("active");
     }
 
     function shoot(direction) {
+      if (shots >= maxShots) return;
+
+      shots++;
+
       const choices = ['left', 'center', 'right'];
       const keeper = choices[Math.floor(Math.random() * 3)];
 
-      let text = '';
-      if (direction === keeper) {
-        text = '❌ СЕЙВ! Вратарь угадал';
+      if (direction !== keeper) {
+        goals++;
+        document.getElementById("result").innerText = '⚽ ГОООЛ!';
       } else {
-        text = '⚽ ГОООЛ!';
+        document.getElementById("result").innerText = '❌ СЕЙВ!';
       }
 
-      document.getElementById('result').innerText = text;
+      updateScore();
+
+      if (shots === maxShots) {
+        endGame();
+      }
+    }
+
+    function updateScore() {
+      document.getElementById("scoreText").innerText =
+        `Удар: ${shots + 1} / ${maxShots} · Голы: ${goals}`;
+    }
+
+    function endGame() {
+      document.getElementById("result").innerText =
+        `🏁 Серия окончена! Ты забил ${goals} из ${maxShots}`;
+
+      document.getElementById("restartBtn").style.display = 'block';
+    }
+
+    function restartGame() {
+      startGame();
     }
   </script>
 
 </body>
 </html>
+
