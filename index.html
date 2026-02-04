@@ -126,6 +126,42 @@ body {
   border-radius:50%;
 }
 
+/* ПЕНАЛЬТИСТ */
+.player {
+  position:absolute;
+  bottom:6px;
+  left:50%;
+  transform:translateX(-50%);
+  width:40px;
+  height:70px;
+  pointer-events:none;
+}
+.player .body {
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  width:20px;
+  height:35px;
+  background:#1e88e5;
+  border-radius:8px;
+  transform:translateX(-50%);
+}
+.player .leg {
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  width:6px;
+  height:25px;
+  background:#333;
+  border-radius:4px;
+  transform-origin:top center;
+  transform:translateX(6px) rotate(0deg);
+  transition:transform .25s ease;
+}
+.player.kick .leg {
+  transform:translateX(6px) rotate(-45deg);
+}
+
 /* МЯЧ */
 .ball {
   position:absolute;
@@ -138,7 +174,7 @@ body {
   border-radius:50%;
   transform:translateX(-50%);
   transition:transform .5s ease;
-  box-shadow: 0 8px 10px rgba(0,0,0,0.45);
+  box-shadow:0 8px 10px rgba(0,0,0,.45);
 }
 
 /* ПРИЦЕЛ */
@@ -220,6 +256,12 @@ body {
     <div class="stadium" id="stadium">
       <div class="goal"></div>
       <div class="keeper" id="keeper"></div>
+
+      <div class="player" id="player">
+        <div class="body"></div>
+        <div class="leg"></div>
+      </div>
+
       <div class="ball" id="ball"></div>
       <div class="aim" id="aim"></div>
     </div>
@@ -257,25 +299,16 @@ body {
 </div>
 
 <script>
-/* === ПРОГРЕСС === */
 function getProgress(){
   return JSON.parse(localStorage.getItem('progress')) || {
-    rating:60,
-    bestRating:60,
-    totalGoals:0,
-    seriesPlayed:0,
-    bestSeries:0,
-    bestStreak:0
+    rating:60,bestRating:60,totalGoals:0,
+    seriesPlayed:0,bestSeries:0,bestStreak:0
   };
 }
-function saveProgress(p){
-  localStorage.setItem('progress',JSON.stringify(p));
-}
+function saveProgress(p){ localStorage.setItem('progress',JSON.stringify(p)); }
 
-/* === ИГРА === */
-let shots, goals, rating, career;
-let power=0, charging=false, interval, canShoot=true;
-let currentStreak=0;
+let shots,goals,rating,career,currentStreak;
+let power=0,charging=false,interval,canShoot=true;
 const maxShots=5;
 
 const stats=document.getElementById('stats');
@@ -289,6 +322,7 @@ const result=document.getElementById('result');
 const nextBtn=document.getElementById('nextBtn');
 const restartBtn=document.getElementById('restartBtn');
 const menuBtn=document.getElementById('menuBtn');
+const player=document.getElementById('player');
 
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -296,16 +330,11 @@ function showScreen(id){
 }
 
 function startGame(isCareer){
-  career=isCareer;
-  shots=0; goals=0; currentStreak=0;
-  const p=getProgress();
-  rating=isCareer?p.rating:60;
+  career=isCareer; shots=0; goals=0; currentStreak=0;
+  rating=isCareer?getProgress().rating:60;
   modeTitle.innerText=isCareer?'Карьера':'Новая игра';
-  menuBtn.style.display='none';
-  restartBtn.style.display='none';
-  updateStats();
-  resetShot();
-  showScreen('game');
+  menuBtn.style.display='none'; restartBtn.style.display='none';
+  updateStats(); resetShot(); showScreen('game');
 }
 
 function updateStats(){
@@ -323,75 +352,50 @@ stadium.addEventListener('mousemove',e=>{
 stadium.addEventListener('mousedown',()=>{
   if(!canShoot) return;
   charging=true; power=0; powerFill.style.width='0%';
-  interval=setInterval(()=>{
-    power=Math.min(power+2,100);
-    powerFill.style.width=power+'%';
-  },30);
+  interval=setInterval(()=>{ power=Math.min(power+2,100); powerFill.style.width=power+'%'; },30);
 });
 
 stadium.addEventListener('mouseup',e=>{
   if(!charging||!canShoot) return;
   clearInterval(interval); charging=false; canShoot=false;
-  shots++;
+  shots++; player.classList.add('kick');
+  setTimeout(()=>player.classList.remove('kick'),250);
 
   const r=stadium.getBoundingClientRect();
-  const x=e.clientX-r.left;
-  const y=e.clientY-r.top;
-
+  const x=e.clientX-r.left, y=e.clientY-r.top;
   ball.style.transform=`translateX(calc(-50% + ${x-r.width/2}px)) translateY(${y-(r.height-20)}px)`;
 
   const save=Math.random()<0.4;
-  if(save){
-    keeper.style.transform=`translateX(calc(-50% + ${x-r.width/2}px))`;
-    result.innerText='❌ СЕЙВ';
-    currentStreak=0;
-  }else{
-    goals++; currentStreak++;
-    result.innerText='⚽ ГОЛ';
-    if(career && rating<99) rating++;
-  }
+  if(save){ keeper.style.transform=`translateX(calc(-50% + ${x-r.width/2}px))`; result.innerText='❌ СЕЙВ'; currentStreak=0; }
+  else{ goals++; currentStreak++; result.innerText='⚽ ГОЛ'; if(career&&rating<99) rating++; }
 
-  updateStats();
-  setTimeout(afterShot,600);
+  updateStats(); setTimeout(afterShot,600);
 });
 
 function afterShot(){
-  aim.style.display='none';
-  powerFill.style.width='0%';
-  if(shots<maxShots){
-    nextBtn.style.display='block';
-  }else{
-    finishSeries();
-  }
+  aim.style.display='none'; powerFill.style.width='0%';
+  shots<maxShots?nextBtn.style.display='block':finishSeries();
 }
 
-nextBtn.onclick=()=>{
-  resetShot();
-  nextBtn.style.display='none';
-};
+nextBtn.onclick=()=>{ resetShot(); nextBtn.style.display='none'; };
 
 function finishSeries(){
-  const p=getProgress();
   if(career){
-    p.rating=rating;
-    p.bestRating=Math.max(p.bestRating,rating);
-    p.totalGoals+=goals;
-    p.seriesPlayed++;
+    const p=getProgress();
+    p.rating=rating; p.bestRating=Math.max(p.bestRating,rating);
+    p.totalGoals+=goals; p.seriesPlayed++;
     p.bestSeries=Math.max(p.bestSeries,goals);
     p.bestStreak=Math.max(p.bestStreak,currentStreak);
     saveProgress(p);
   }
   result.innerText=`🏁 Серия окончена: ${goals} из 5`;
-  restartBtn.style.display='block';
-  menuBtn.style.display='block';
+  restartBtn.style.display='block'; menuBtn.style.display='block';
 }
 
 restartBtn.onclick=()=>{
   shots=0; goals=0; currentStreak=0;
-  restartBtn.style.display='none';
-  menuBtn.style.display='none';
-  updateStats();
-  resetShot();
+  restartBtn.style.display='none'; menuBtn.style.display='none';
+  updateStats(); resetShot();
 };
 
 function resetShot(){
@@ -403,24 +407,18 @@ function resetShot(){
 
 function openProgress(){
   const p=getProgress();
-  document.getElementById('pRating').innerText=p.rating;
-  document.getElementById('pBestRating').innerText=p.bestRating;
-  document.getElementById('pGoals').innerText=p.totalGoals;
-  document.getElementById('pSeries').innerText=p.seriesPlayed;
+  pRating.innerText=p.rating; pBestRating.innerText=p.bestRating;
+  pGoals.innerText=p.totalGoals; pSeries.innerText=p.seriesPlayed;
   showScreen('progress');
 }
-
 function openRecords(){
   const p=getProgress();
-  document.getElementById('rBestSeries').innerText=p.bestSeries+' / 5';
-  document.getElementById('rBestStreak').innerText=p.bestStreak;
-  document.getElementById('rTotalGoals').innerText=p.totalGoals;
+  rBestSeries.innerText=p.bestSeries+' / 5';
+  rBestStreak.innerText=p.bestStreak;
+  rTotalGoals.innerText=p.totalGoals;
   showScreen('records');
 }
-
-function backToMenu(){
-  showScreen('menu');
-}
+function backToMenu(){ showScreen('menu'); }
 </script>
 
 </body>
